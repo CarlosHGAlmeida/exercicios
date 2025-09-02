@@ -1,0 +1,27 @@
+@charset "UTF-8";
+
+body {
+
+    font-family: Arial, Helvetica, sans-serif;
+    /*font-size: 16px;*/
+    font-size: 1em;
+    /* 16px geralmente = 1em*/
+    font-style: oblique;
+    font-weight: 400;
+
+    h1{
+        /*
+        font-style:italic
+        font-weight:bolder;
+        font-size:3em;
+        font-family:'Times New Roman', Times, serif; 
+        */
+        /* shorthand font*/
+        font:  italic bolder 3em 'Times New Roman', Times, serif;
+
+    }
+
+    h2 {
+        text-decoration: underline;
+    }
+}
