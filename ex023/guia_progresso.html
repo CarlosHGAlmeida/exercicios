@@ -1,10 +1,13 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guia de Progresso Alimentar</title>
+    <!-- 1. INCLUSÃO DA BIBLIOTECA CHART.JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* ... (todo o seu CSS original permanece aqui, sem alterações ) ... */
         * {
             margin: 0;
             padding: 0;
@@ -320,6 +323,15 @@
             font-size: 0.9em;
             margin-top: 5px;
         }
+        
+        /* NOVO CSS PARA O GRÁFICO */
+        .chart-container {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
 
         .encouragement {
             background: linear-gradient(45deg, #FFF8DC, #F0F8FF);
@@ -481,6 +493,11 @@
                     <div class="stat-label">Dias consecutivos</div>
                 </div>
             </div>
+            
+            <!-- 2. NOVO ELEMENTO HTML PARA O GRÁFICO -->
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
         </div>
 
         <div class="encouragement">
@@ -497,6 +514,9 @@
             'interesse', 'sem-distracao', 'tolera-novos', 
             'experimenta', 'come-novos', 'autonomia'
         ];
+        
+        // 3. NOVA VARIÁVEL PARA O GRÁFICO
+        let progressChartInstance = null;
 
         // Initialize date to today
         document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
@@ -601,27 +621,103 @@
                 // Calculate consecutive days
                 const uniqueDates = [...new Set(entries.map(entry => entry.date))].sort();
                 let consecutiveDays = 0;
-                let currentStreak = 1;
-                
-                for (let i = 1; i < uniqueDates.length; i++) {
-                    const prevDate = new Date(uniqueDates[i-1]);
-                    const currDate = new Date(uniqueDates[i]);
-                    const diffTime = currDate - prevDate;
-                    const diffDays = diffTime / (1000 * 60 * 60 * 24);
-                    
-                    if (diffDays === 1) {
-                        currentStreak++;
-                    } else {
+                if (uniqueDates.length > 0) {
+                    let currentStreak = 1;
+                    consecutiveDays = 1;
+                    for (let i = 1; i < uniqueDates.length; i++) {
+                        const prevDate = new Date(uniqueDates[i-1]);
+                        const currDate = new Date(uniqueDates[i]);
+                        const diffTime = currDate - prevDate;
+                        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                        
+                        if (diffDays === 1) {
+                            currentStreak++;
+                        } else if (diffDays > 1) {
+                            currentStreak = 1;
+                        }
                         consecutiveDays = Math.max(consecutiveDays, currentStreak);
-                        currentStreak = 1;
                     }
                 }
-                consecutiveDays = Math.max(consecutiveDays, currentStreak);
                 document.getElementById('consecutiveDays').textContent = consecutiveDays;
             } else {
                 document.getElementById('progressPercentage').textContent = '0%';
                 document.getElementById('consecutiveDays').textContent = '0';
             }
+            
+            // 4. CHAMAR A FUNÇÃO PARA ATUALIZAR O GRÁFICO
+            renderProgressChart();
+        }
+        
+        // 5. NOVA FUNÇÃO PARA RENDERIZAR O GRÁFICO
+        function renderProgressChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+
+            // Processar dados para o gráfico
+            const dataByDay = entries.reduce((acc, entry) => {
+                const day = entry.date;
+                if (!acc[day]) {
+                    acc[day] = { indicators: 0, count: 0 };
+                }
+                acc[day].indicators += entry.indicators.length;
+                acc[day].count++;
+                return acc;
+            }, {});
+
+            const sortedDays = Object.keys(dataByDay).sort((a, b) => new Date(a) - new Date(b));
+            
+            const labels = sortedDays.map(day => new Date(day).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' }));
+            const data = sortedDays.map(day => {
+                const dayData = dataByDay[day];
+                const maxPossible = dayData.count * indicators.length;
+                return Math.round((dayData.indicators / maxPossible) * 100);
+            });
+
+            // Destruir o gráfico antigo se ele existir (para evitar sobreposição)
+            if (progressChartInstance) {
+                progressChartInstance.destroy();
+            }
+
+            // Criar o novo gráfico
+            progressChartInstance = new Chart(ctx, {
+                type: 'line', // Tipo de gráfico: linha
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Progresso Médio Diário (%)',
+                        data: data,
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        borderColor: '#4CAF50',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3 // Deixa a linha mais suave
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100, // O progresso vai de 0 a 100%
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Progresso: ${context.parsed.y}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         // Save data to localStorage
