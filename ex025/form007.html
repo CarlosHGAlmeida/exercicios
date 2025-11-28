@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário</title>
+</head>
+<body>
+    <h1>Exemplo de Formulário</h1>
+    <form action="">
+        <p>
+            <label for="iestado">Estado: </label>
+            <select name="estado" id="iestado" required>
+                <option value="">...Selecione...</option>
+                <optgroup label="Região Sudeste">
+                    <option value="MG">Minas Gerais</option>
+                    <option value="SP">São Paulo</option>
+                    <option value="RJ">Rio de Janeiro</option>
+                    <option value="ES">Espírito Santo</option>
+                </optgroup>
+                <optgroup label="Região Nordeste">
+                    <option value="BA">Bahia</option>
+                    <option value="PE">Pernambuco</option>
+                    <option value="CE">Ceará</option>
+                    <option value="RN">Rio Grande do Norte</option>
+                </optgroup>
+            </select>
+        </p>
+        
+        <p>
+            <label for="iprof">Profissão: </label>
+            <input type="text" id="iprof" name="profissao" list="lstprof" required>
+            <datalist id="lstprof" required>
+                <option value="Engenheiro">Engenheiro</option>
+                <option value="Médico">Médico</option>
+                <option value="Advogado">Advogado</option>
+                <option value="Professor">Professor</option>
+            </datalist>
+        </p>
+        
+        <p>
+            <label for="iobs">Observações: </label>
+            <textarea name="obs" id="iobs" rows="4" cols="50" placeholder="Digite suas observações aqui..." required></textarea>    
+        </p>
+       
+        <p>
+            <input type="submit" value="Enviar">
+            <input type="reset" value="Limpar">
+        </p>
+    </form>
+
+</body> 
+</html>
